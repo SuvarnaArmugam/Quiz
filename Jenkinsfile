@@ -737,7 +737,35 @@ pipeline {
 
 
         // ============================================================
-        // 8. PLAYWRIGHT TESTS
+        // 8. JAVA PLAYWRIGHT TESTS
+        // ============================================================
+
+        stage('Java Playwright Tests') {
+
+            steps {
+
+                bat '''
+                    @echo off
+
+                    echo ==========================================
+                    echo RUNNING JAVA PLAYWRIGHT TEST
+                    echo ==========================================
+
+                    set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
+                    set "PATH=%JAVA_HOME%\\bin;%PATH%"
+
+                    call mvn -Dtest=ExampleTest test
+                    if errorlevel 1 (
+                        echo ERROR: Java Playwright test failed.
+                        exit /b 1
+                    )
+                '''
+            }
+        }
+
+
+        // ============================================================
+        // 9. NODE PLAYWRIGHT TESTS
         // ============================================================
 
         stage('Playwright Tests') {
