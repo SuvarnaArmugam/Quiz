@@ -238,34 +238,32 @@ pipeline {
         // ==================================================
 
         stage('Stop Existing Backend') {
+    steps {
+        bat '''
+        echo ==========================================
+        echo STOPPING EXISTING BACKEND
+        echo ==========================================
 
-            steps {
+        echo Checking port 8080...
 
-                bat '''
-                    echo ==========================================
-                    echo STOPPING EXISTING BACKEND
-                    echo ==========================================
+        for /F "tokens=5" %%a in ('netstat -ano ^| findstr :8080 ^| findstr LISTENING') do (
+            echo Found process %%a using port 8080
+            taskkill /PID %%a /F >nul 2>&1
+        )
 
-                    echo Checking port %BACKEND_PORT%...
+        echo.
+        echo Checking port again:
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :%BACKEND_PORT% ^| findstr LISTENING') do (
+        netstat -ano | findstr :8080 || echo No process is using port 8080.
 
-                        echo Found process %%a using port %BACKEND_PORT%
+        echo.
+        echo Backend port 8080 is available.
+        echo ==========================================
 
-                        taskkill /PID %%a /F
-                    )
-
-                    echo.
-                    echo Checking port again:
-
-                    netstat -ano | findstr :%BACKEND_PORT%
-
-                    echo.
-                    echo Backend port %BACKEND_PORT% is available.
-                '''
-            }
-        }
-
+        exit /b 0
+        '''
+    }
+}
 
         // ==================================================
         // 5. START BACKEND
