@@ -23,7 +23,7 @@ pipeline {
         // APPZILLON WAR
         // ==================================================
 
-        APPSERVER_WAR = "appzillon\\quizzapp.war"
+       APPSERVER_WAR = "C:\\Users\\suvarna.lnu\\Downloads\\jenkins\\quizzapp.war"
 
 
         // ==================================================
