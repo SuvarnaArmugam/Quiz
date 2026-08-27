@@ -286,7 +286,7 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo STARTING QUIZAPP BACKEND VIA WMI
+                    echo STARTING QUIZAPP BACKEND VIA POWERSHELL
                     echo ==========================================
 
                     set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
@@ -295,9 +295,13 @@ pipeline {
                         del /F /Q "%WORKSPACE%\\backend.log"
                     )
 
+                    if exist "%WORKSPACE%\\backend-err.log" (
+                        del /F /Q "%WORKSPACE%\\backend-err.log"
+                    )
+
                     echo Starting Spring Boot application...
 
-                    wmic process call create "cmd /c \\"%JAVA_HOME%\\bin\\java.exe\\" -jar \\"%WORKSPACE%\\target\\quizapp.jar\\" > \\"%WORKSPACE%\\backend.log\\" 2>&1"
+                    powershell -NoProfile -Command "$env:JENKINS_NODE_COOKIE='dontKillMe'; Start-Process -FilePath '%JAVA_HOME%\\bin\\java.exe' -ArgumentList '-jar','%WORKSPACE%\\target\\quizapp.jar' -RedirectStandardOutput '%WORKSPACE%\\backend.log' -RedirectStandardError '%WORKSPACE%\\backend-err.log' -WindowStyle Hidden"
 
                     echo.
                     echo BACKEND START COMMAND EXECUTED
@@ -325,6 +329,12 @@ pipeline {
                         powershell -NoProfile -Command "Get-Content '%WORKSPACE%\\backend.log' -Tail 50"
                     ) else (
                         echo backend.log not found.
+                    )
+
+                    if exist "%WORKSPACE%\\backend-err.log" (
+                        echo.
+                        echo -- backend-err.log --
+                        powershell -NoProfile -Command "Get-Content '%WORKSPACE%\\backend-err.log' -Tail 50"
                     )
                 '''
             }
@@ -554,14 +564,18 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo STARTING TOMCAT VIA WMI
+                    echo STARTING TOMCAT VIA POWERSHELL
                     echo ==========================================
 
                     if exist "%APPZ_HOME%\\logs\\jenkins-run.log" (
                         del /F /Q "%APPZ_HOME%\\logs\\jenkins-run.log"
                     )
 
-                    wmic process call create "cmd /c \\"%APPZ_HOME%\\bin\\catalina.bat\\" run > \\"%APPZ_HOME%\\logs\\jenkins-run.log\\" 2>&1"
+                    if exist "%APPZ_HOME%\\logs\\jenkins-run-err.log" (
+                        del /F /Q "%APPZ_HOME%\\logs\\jenkins-run-err.log"
+                    )
+
+                    powershell -NoProfile -Command "$env:JENKINS_NODE_COOKIE='dontKillMe'; Start-Process -FilePath '%APPZ_HOME%\\bin\\catalina.bat' -ArgumentList 'run' -RedirectStandardOutput '%APPZ_HOME%\\logs\\jenkins-run.log' -RedirectStandardError '%APPZ_HOME%\\logs\\jenkins-run-err.log' -WindowStyle Hidden"
 
                     echo.
                     echo TOMCAT START COMMAND EXECUTED
@@ -589,6 +603,12 @@ pipeline {
                         powershell -NoProfile -Command "Get-Content '%APPZ_HOME%\\logs\\jenkins-run.log' -Tail 50"
                     ) else (
                         echo Tomcat log not found.
+                    )
+
+                    if exist "%APPZ_HOME%\\logs\\jenkins-run-err.log" (
+                        echo.
+                        echo -- jenkins-run-err.log --
+                        powershell -NoProfile -Command "Get-Content '%APPZ_HOME%\\logs\\jenkins-run-err.log' -Tail 50"
                     )
                 '''
             }
