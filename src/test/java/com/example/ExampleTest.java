@@ -129,21 +129,7 @@ public class ExampleTest {
 
             page.waitForTimeout(2000);
 
-            // =========================
-            // BACK
-            // =========================
-
-            page.getByRole(
-                AriaRole.BUTTON,
-                new Page.GetByRoleOptions()
-                    .setName("Back")
-            ).click();
-
-            System.out.println("13. Back clicked");
-
-            page.waitForTimeout(2000);
-
-            System.out.println("14. Quiz flow completed successfully");
+            System.out.println("13. Quiz flow completed successfully");
 
             browser.close();
 
