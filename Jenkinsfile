@@ -286,12 +286,10 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo STARTING QUIZAPP BACKEND
+                    echo STARTING QUIZAPP BACKEND VIA WMI
                     echo ==========================================
 
                     set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
-                    set "PATH=%JAVA_HOME%\\bin;%PATH%"
-                    set "JENKINS_NODE_COOKIE=dontKillMe"
 
                     if exist "%WORKSPACE%\\backend.log" (
                         del /F /Q "%WORKSPACE%\\backend.log"
@@ -299,7 +297,7 @@ pipeline {
 
                     echo Starting Spring Boot application...
 
-                    start "QuizApp-Backend" /B cmd /c "set JENKINS_NODE_COOKIE=dontKillMe&&set JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2&&set PATH=C:\\Program Files\\Java\\jdk-17.0.2\\bin;%%PATH%%&&java -jar \"%WORKSPACE%\\target\\quizapp.jar\" > \"%WORKSPACE%\\backend.log\" 2>&1"
+                    wmic process call create "cmd /c \\"%JAVA_HOME%\\bin\\java.exe\\" -jar \\"%WORKSPACE%\\target\\quizapp.jar\\" > \\"%WORKSPACE%\\backend.log\\" 2>&1"
 
                     echo.
                     echo BACKEND START COMMAND EXECUTED
@@ -556,19 +554,14 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo STARTING TOMCAT
+                    echo STARTING TOMCAT VIA WMI
                     echo ==========================================
-
-                    set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
-                    set "PATH=%JAVA_HOME%\\bin;%PATH%"
-                    set "CATALINA_HOME=%APPZ_HOME%"
-                    set "JENKINS_NODE_COOKIE=dontKillMe"
 
                     if exist "%APPZ_HOME%\\logs\\jenkins-run.log" (
                         del /F /Q "%APPZ_HOME%\\logs\\jenkins-run.log"
                     )
 
-                    start "QuizApp-Tomcat" /B cmd /c "set JENKINS_NODE_COOKIE=dontKillMe&&set JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2&&set CATALINA_HOME=%APPZ_HOME%&&call \"%APPZ_HOME%\\bin\\catalina.bat\" run > \"%APPZ_HOME%\\logs\\jenkins-run.log\" 2>&1"
+                    wmic process call create "cmd /c \\"%APPZ_HOME%\\bin\\catalina.bat\\" run > \\"%APPZ_HOME%\\logs\\jenkins-run.log\\" 2>&1"
 
                     echo.
                     echo TOMCAT START COMMAND EXECUTED
