@@ -158,43 +158,55 @@ pipeline {
                 // ----------------------------------------------------
                 // STOP OLD BACKEND
                 // ----------------------------------------------------
+bat '''
+    @echo off
 
-                bat '''
-                    @echo off
+    echo ==========================================
+    echo STOPPING OLD BACKEND
+    echo ==========================================
 
-                    echo ==========================================
-                    echo STOPPING OLD BACKEND
-                    echo ==========================================
+    echo Checking port %BACKEND_PORT%...
 
-                    echo Checking port 8080...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "$connections = Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue; ^
+         if ($connections) { ^
+             foreach ($connection in $connections) { ^
+                 Write-Host ('Stopping PID ' + $connection.OwningProcess); ^
+                 Stop-Process -Id $connection.OwningProcess -Force -ErrorAction SilentlyContinue ^
+             } ^
+         } else { ^
+             Write-Host 'No process is using port %BACKEND_PORT%.' ^
+         }"
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr LISTENING ^| findstr ":8080"') do (
-                        echo Stopping process %%a on port 8080
-                        taskkill /F /PID %%a >nul 2>&1
-                    )
+    echo.
+    echo Waiting for old backend to stop...
 
-                    echo.
-                    echo Waiting for old backend to stop...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "Start-Sleep -Seconds 3"
 
-                    timeout /t 3 /nobreak >nul
+    echo.
+    echo ==========================================
+    echo FINAL PORT %BACKEND_PORT% CHECK
+    echo ==========================================
 
-                    echo.
-                    echo ==========================================
-                    echo FINAL PORT 8080 CHECK
-                    echo ==========================================
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "$connections = Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue; ^
+         if ($connections) { ^
+             Write-Host 'ERROR: Port %BACKEND_PORT% is still in use.'; ^
+             exit 1 ^
+         } else { ^
+             Write-Host 'Port %BACKEND_PORT% is available.' ^
+         }"
 
-                    netstat -ano | findstr LISTENING | findstr ":8080"
+    if errorlevel 1 (
+        echo.
+        echo ERROR: Could not free port %BACKEND_PORT%.
+        exit /b 1
+    )
 
-                    if not errorlevel 1 (
-                        echo ERROR: Port 8080 is still in use.
-                        exit /b 1
-                    )
-
-                    echo Port 8080 is available.
-
-                    echo.
-                    echo Old backend cleanup completed successfully.
-                '''
+    echo.
+    echo Old backend cleanup completed successfully.
+'''
 
 
                 // ----------------------------------------------------
