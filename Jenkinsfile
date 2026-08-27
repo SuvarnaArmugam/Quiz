@@ -175,13 +175,13 @@ pipeline {
                     // ------------------------------------------------
  
                     echo.
-                    echo CHECKING quizzapp JAR
+                    echo CHECKING quizapp JAR
                     echo ==========================================
  
                     if not exist "target\\quizapp-0.0.1-SNAPSHOT.jar" (
  
                         echo ERROR:
-                        echo quizzapp JAR not found.
+                        echo quizapp JAR not found.
  
                         echo Expected:
                         echo target\\quizapp-1.0.0-SNAPSHOT.jar
@@ -189,7 +189,7 @@ pipeline {
                         exit /b 1
                     )
  
-                    echo quizzapp JAR found.
+                    echo quizapp JAR found.
  
  
                     // ------------------------------------------------
