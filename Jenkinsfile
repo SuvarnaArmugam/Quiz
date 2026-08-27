@@ -764,7 +764,7 @@ pipeline {
                     )
 
                     node --version
-                    npm --version
+                    call npm --version
 
                     echo.
                     echo ==========================================
