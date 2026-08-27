@@ -386,7 +386,10 @@ pipeline {
                         echo Testing backend URL...
 
                         curl -s -o nul -w "HTTP Status: %%{http_code}" "%BACKEND_URL%"
+                        echo.
 
+                        REM Second check in case first request hit the DispatcherServlet lazy-init race
+                        curl -s -o nul -w "HTTP Status: %%{http_code}" "%BACKEND_URL%"
                         echo.
 
                         echo Backend application is running.
@@ -610,6 +613,29 @@ pipeline {
                         echo -- jenkins-run-err.log --
                         powershell -NoProfile -Command "Get-Content '%APPZ_HOME%\\logs\\jenkins-run-err.log' -Tail 50"
                     )
+
+                    echo.
+                    echo ==========================================
+                    echo VERIFYING TOMCAT IS SERVING
+                    echo ==========================================
+
+                    netstat -ano | findstr LISTENING | findstr ":8086" >nul
+
+                    if errorlevel 1 (
+                        echo.
+                        echo ##########################################
+                        echo # TOMCAT IS NOT RUNNING - PORT 8086 CLOSED
+                        echo ##########################################
+                        exit /b 1
+                    )
+
+                    curl -s -o nul -w "HTTP Status: %%{http_code}\\n" "%APPZILLON_URL%"
+
+                    echo.
+                    echo ##########################################
+                    echo # TOMCAT IS UP AND RUNNING ON PORT 8086
+                    echo # %APPZILLON_URL%
+                    echo ##########################################
                 '''
             }
         }
@@ -724,13 +750,10 @@ pipeline {
             echo '=========================================='
 
             echo 'Backend:'
-            echo 'http://localhost:8080'
-
-            echo 'Backend API:'
-            echo 'http://localhost:8080/api/user/quizzes'
+            echo "${env.BACKEND_URL}"
 
             echo 'Appzillon:'
-            echo 'http://localhost:8086/quizzapp/'
+            echo "${env.APPZILLON_URL}"
 
             echo '=========================================='
         }
