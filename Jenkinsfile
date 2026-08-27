@@ -1,4 +1,3 @@
-```groovy
 pipeline {
 
     agent any
@@ -704,4 +703,4 @@ Check Tomcat logs.
         }
     }
 }
-```
+
