@@ -794,6 +794,7 @@ pipeline {
                     echo ==========================================
 
                     set "CI=true"
+                    set "PW_HEADLESS=false"
                     call npx playwright test --project=chromium
                     if errorlevel 1 (
                         echo ERROR: Playwright tests failed.
