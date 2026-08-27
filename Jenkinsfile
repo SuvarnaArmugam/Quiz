@@ -104,6 +104,8 @@ pipeline {
 
                     echo.
                     echo Workspace check completed successfully.
+
+                    exit /b 0
                 '''
             }
         }
@@ -121,8 +123,9 @@ pipeline {
                 echo 'BUILDING QUIZAPP BACKEND'
                 echo '=========================================='
 
+
                 // ----------------------------------------------------
-                // SET JAVA
+                // JAVA + MAVEN
                 // ----------------------------------------------------
 
                 bat '''
@@ -137,12 +140,24 @@ pipeline {
 
                     java -version
 
+                    if errorlevel 1 (
+                        echo ERROR: Java is not working.
+                        exit /b 1
+                    )
+
                     echo.
                     echo ==========================================
                     echo MAVEN VERSION
                     echo ==========================================
 
                     mvn -version
+
+                    if errorlevel 1 (
+                        echo ERROR: Maven is not working.
+                        exit /b 1
+                    )
+
+                    exit /b 0
                 '''
 
 
@@ -168,6 +183,8 @@ pipeline {
                     )
 
                     echo pom.xml found successfully.
+
+                    exit /b 0
                 '''
 
 
@@ -184,22 +201,63 @@ pipeline {
 
                     echo Checking port 8080...
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8080 ^| findstr LISTENING') do (
+                    set "FOUND_PID="
 
-                        echo Killing process %%a on port 8080
-
-                        taskkill /F /PID %%a >nul 2>&1
+                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080" ^| findstr "LISTENING"') do (
+                        set "FOUND_PID=%%a"
                     )
 
+                    if defined FOUND_PID (
+
+                        echo Backend process found.
+                        echo PID: %FOUND_PID%
+
+                        taskkill /F /PID %FOUND_PID% >nul 2>&1
+
+                        if errorlevel 1 (
+                            echo Warning: Could not kill PID %FOUND_PID%.
+                        ) else (
+                            echo Backend process stopped successfully.
+                        )
+
+                    ) else (
+
+                        echo No process is using port 8080.
+                    )
+
+
                     echo.
-                    echo Waiting for port 8080...
+                    echo Waiting for port 8080 to become available...
 
-                    ping 127.0.0.1 -n 3 >nul
+                    timeout /t 3 /nobreak >nul
+
 
                     echo.
-                    echo Port 8080 status:
+                    echo ==========================================
+                    echo FINAL PORT 8080 CHECK
+                    echo ==========================================
 
-                    netstat -ano | findstr :8080 || echo Port 8080 is available.
+                    netstat -ano | findstr ":8080" | findstr "LISTENING" >nul
+
+                    if errorlevel 1 (
+
+                        echo Port 8080 is available.
+
+                    ) else (
+
+                        echo ERROR: Port 8080 is still in use.
+                        echo.
+
+                        netstat -ano | findstr ":8080"
+
+                        exit /b 1
+                    )
+
+
+                    echo.
+                    echo Old backend cleanup completed successfully.
+
+                    exit /b 0
                 '''
 
 
@@ -238,6 +296,8 @@ pipeline {
                     echo ==========================================
                     echo MAVEN BUILD SUCCESSFUL
                     echo ==========================================
+
+                    exit /b 0
                 '''
 
 
@@ -275,6 +335,8 @@ pipeline {
                     echo ==========================================
 
                     dir "%APP_JAR%"
+
+                    exit /b 0
                 '''
             }
         }
@@ -318,7 +380,7 @@ pipeline {
                     echo CHECKING PORT 8080
                     echo ==========================================
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8080 ^| findstr LISTENING') do (
+                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080" ^| findstr "LISTENING"') do (
 
                         echo Stopping process %%a on port 8080
 
@@ -326,10 +388,7 @@ pipeline {
                     )
 
 
-                    echo.
-                    echo Waiting for port 8080...
-
-                    ping 127.0.0.1 -n 4 >nul
+                    timeout /t 3 /nobreak >nul
 
 
                     echo.
@@ -349,9 +408,7 @@ pipeline {
 
 
                     echo.
-                    echo Starting:
-
-                    echo java -jar %APP_JAR%
+                    echo Starting QuizApp...
 
 
                     start "QuizApp-Backend" /B cmd /c ^
@@ -365,8 +422,15 @@ pipeline {
                     echo.
                     echo Waiting for application to start...
 
-                    ping 127.0.0.1 -n 6 >nul
+                    timeout /t 8 /nobreak >nul
 
+
+                    echo.
+                    echo ==========================================
+                    echo BACKEND PORT STATUS
+                    echo ==========================================
+
+                    netstat -ano | findstr ":8080" | findstr "LISTENING"
 
                     echo.
                     echo ==========================================
@@ -381,6 +445,8 @@ pipeline {
 
                         echo backend.log not found.
                     )
+
+                    exit /b 0
                 '''
             }
         }
@@ -409,15 +475,12 @@ pipeline {
                     echo Backend Port:
                     echo %BACKEND_PORT%
 
-
                     echo.
                     echo ==========================================
                     echo WAITING FOR BACKEND
                     echo ==========================================
 
-
                     set RETRIES=30
-
 
                     :CHECK_BACKEND
 
@@ -425,12 +488,9 @@ pipeline {
                     echo Checking backend...
                     echo Attempts remaining: %RETRIES%
 
-
                     curl -s -o nul -w "%%{http_code}" "%BACKEND_URL%" > response_code.txt
 
-
                     set /p HTTP_CODE=<response_code.txt
-
 
                     echo HTTP Status Code: %HTTP_CODE%
 
@@ -470,9 +530,7 @@ pipeline {
                     echo.
                     echo Backend not ready yet.
 
-
                     set /a RETRIES-=1
-
 
                     if %RETRIES% LEQ 0 (
 
@@ -486,8 +544,7 @@ pipeline {
                         echo PORT 8080 STATUS
                         echo ==========================================
 
-                        netstat -ano | findstr :8080
-
+                        netstat -ano | findstr ":8080"
 
                         echo.
                         echo ==========================================
@@ -503,7 +560,6 @@ pipeline {
                             echo backend.log not found.
                         )
 
-
                         del /f /q response_code.txt >nul 2>&1
 
                         exit /b 1
@@ -513,8 +569,7 @@ pipeline {
                     echo.
                     echo Waiting 3 seconds before retry...
 
-                    ping 127.0.0.1 -n 4 >nul
-
+                    timeout /t 3 /nobreak >nul
 
                     goto CHECK_BACKEND
                 '''
@@ -565,6 +620,8 @@ pipeline {
                     echo ==========================================
 
                     dir "%APPZILLON_WAR%"
+
+                    exit /b 0
                 '''
             }
         }
@@ -616,7 +673,7 @@ pipeline {
                     echo ==========================================
 
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :%TOMCAT_PORT% ^| findstr LISTENING') do (
+                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%TOMCAT_PORT%" ^| findstr "LISTENING"') do (
 
                         echo Killing PID %%a on port %TOMCAT_PORT%
 
@@ -627,7 +684,7 @@ pipeline {
                     echo.
                     echo Waiting for Tomcat to stop...
 
-                    ping 127.0.0.1 -n 5 >nul
+                    timeout /t 4 /nobreak >nul
 
 
                     echo.
@@ -718,7 +775,7 @@ pipeline {
                     echo.
                     echo Waiting for Tomcat...
 
-                    ping 127.0.0.1 -n 16 >nul
+                    timeout /t 15 /nobreak >nul
 
 
                     echo.
@@ -727,7 +784,7 @@ pipeline {
                     echo ==========================================
 
 
-                    netstat -ano | findstr :%TOMCAT_PORT%
+                    netstat -ano | findstr ":%TOMCAT_PORT%" | findstr "LISTENING"
 
 
                     echo.
@@ -739,10 +796,13 @@ pipeline {
                     if exist "%TOMCAT_HOME%\\logs" (
 
                         dir "%TOMCAT_HOME%\\logs"
+
                     ) else (
 
                         echo Tomcat logs directory not found.
                     )
+
+                    exit /b 0
                 '''
             }
         }
@@ -856,7 +916,7 @@ pipeline {
                         echo TOMCAT PORT STATUS
                         echo ==========================================
 
-                        netstat -ano | findstr :%TOMCAT_PORT%
+                        netstat -ano | findstr ":%TOMCAT_PORT%"
 
 
                         echo.
@@ -884,7 +944,7 @@ pipeline {
                     echo.
                     echo Waiting 5 seconds...
 
-                    ping 127.0.0.1 -n 6 >nul
+                    timeout /t 5 /nobreak >nul
 
 
                     goto CHECK_APPZILLON
