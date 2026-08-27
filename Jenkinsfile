@@ -282,7 +282,7 @@ pipeline {
                     echo WAITING FOR PORT 8080
                     echo ==========================================
 
-                    timeout /t 3 /nobreak >nul
+                    ping -n 4 127.0.0.1 >nul
 
                     echo.
                     echo ==========================================
@@ -309,7 +309,7 @@ pipeline {
                     echo WAITING FOR BACKEND
                     echo ==========================================
 
-                    timeout /t 8 /nobreak >nul
+                    ping -n 9 127.0.0.1 >nul
 
                     echo.
                     echo ==========================================
@@ -420,7 +420,7 @@ pipeline {
 
                     echo Waiting 2 seconds...
 
-                    timeout /t 2 /nobreak >nul
+                    ping -n 3 127.0.0.1 >nul
 
                     goto CHECK_BACKEND
                 '''
@@ -521,7 +521,7 @@ pipeline {
                     echo.
                     echo Waiting for Tomcat to stop...
 
-                    timeout /t 5 /nobreak >nul
+                    ping -n 6 127.0.0.1 >nul
 
                     echo.
                     echo ==========================================
@@ -578,7 +578,7 @@ pipeline {
                     echo WAITING FOR TOMCAT
                     echo ==========================================
 
-                    timeout /t 15 /nobreak >nul
+                    ping -n 16 127.0.0.1 >nul
 
                     echo.
                     echo ==========================================
@@ -689,7 +689,7 @@ pipeline {
 
                     echo Waiting 3 seconds...
 
-                    timeout /t 3 /nobreak >nul
+                    ping -n 4 127.0.0.1 >nul
 
                     goto CHECK_APPZILLON
                 '''
