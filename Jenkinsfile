@@ -734,6 +734,80 @@ pipeline {
                 '''
             }
         }
+
+
+        // ============================================================
+        // 8. PLAYWRIGHT TESTS
+        // ============================================================
+
+        stage('Playwright Tests') {
+
+            steps {
+
+                bat '''
+                    @echo off
+
+                    echo ==========================================
+                    echo RUNNING PLAYWRIGHT TESTS
+                    echo ==========================================
+
+                    where node
+                    if errorlevel 1 (
+                        echo ERROR: Node.js is not installed or not on PATH.
+                        exit /b 1
+                    )
+
+                    where npm
+                    if errorlevel 1 (
+                        echo ERROR: npm is not installed or not on PATH.
+                        exit /b 1
+                    )
+
+                    node --version
+                    npm --version
+
+                    echo.
+                    echo ==========================================
+                    echo INSTALLING NODE DEPENDENCIES
+                    echo ==========================================
+
+                    call npm ci
+                    if errorlevel 1 (
+                        echo ERROR: npm dependency installation failed.
+                        exit /b 1
+                    )
+
+                    echo.
+                    echo ==========================================
+                    echo INSTALLING PLAYWRIGHT CHROMIUM
+                    echo ==========================================
+
+                    call npx playwright install chromium
+                    if errorlevel 1 (
+                        echo ERROR: Playwright browser installation failed.
+                        exit /b 1
+                    )
+
+                    echo.
+                    echo ==========================================
+                    echo EXECUTING PLAYWRIGHT TESTS
+                    echo ==========================================
+
+                    set "CI=true"
+                    call npx playwright test --project=chromium
+                    if errorlevel 1 (
+                        echo ERROR: Playwright tests failed.
+                        exit /b 1
+                    )
+                '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+                }
+            }
+        }
     }
 
 

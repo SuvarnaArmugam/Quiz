@@ -1,0 +1,22 @@
+{
+  "name": "quizapp",
+  "version": "1.0.0",
+  "description": "A single monolithic Spring Boot backend for a Quiz application. Java 17 + Spring Boot + Spring Data JPA + MySQL. No authentication, no microservices, no security layer — the `/api/admin/*` and `/api/user/*` prefixes exist only to separate the two Appzillon screens.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SuvarnaArmugam/Quiz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SuvarnaArmugam/Quiz/issues"
+  },
+  "homepage": "https://github.com/SuvarnaArmugam/Quiz#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.4.0"
+  }
+}
