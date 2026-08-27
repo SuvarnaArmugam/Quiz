@@ -31,31 +31,62 @@ pipeline {
         // ==================================================
         // 1. CHECK WORKSPACE
         // ==================================================
-        stage('Check Workspace') {
-            steps {
-                bat '''
-                echo ==========================================
-                echo CHECKING JENKINS WORKSPACE
-                echo ==========================================
+       stage('Check Workspace') {
+    steps {
+        bat '''
+            echo ==========================================
+            echo CHECKING JENKINS WORKSPACE
+            echo ==========================================
 
-                echo Current Directory:
-                cd
+            echo Current Directory:
+            cd
 
-                echo.
-                echo Workspace Contents:
-                dir
+            echo.
+            echo Workspace Contents:
+            dir
 
-                echo.
-                echo Searching for pom.xml:
-                dir /s /b pom.xml
+            echo.
+            echo Searching for pom.xml:
+            if exist pom.xml (
+                echo pom.xml FOUND
+            ) else (
+                echo ERROR: pom.xml NOT FOUND
+                exit /b 1
+            )
 
-                echo.
-                echo Searching for WAR files:
-                dir /s /b *.war
-                '''
-            }
-        }
+            echo.
+            echo Searching for source files:
+            if exist src (
+                echo src directory FOUND
+            ) else (
+                echo ERROR: src directory NOT FOUND
+                exit /b 1
+            )
 
+            echo.
+            echo Checking for existing JAR files:
+            if exist target\\*.jar (
+                dir /s /b target\\*.jar
+            ) else (
+                echo No JAR found yet - this is OK.
+                echo JAR will be created during Build Backend.
+            )
+
+            echo.
+            echo Checking for existing WAR files:
+            if exist target\\*.war (
+                dir /s /b target\\*.war
+            ) else (
+                echo No WAR found yet - this is OK.
+                echo This project is using a Spring Boot JAR deployment.
+            )
+
+            echo.
+            echo Workspace check completed successfully.
+            echo ==========================================
+        '''
+    }
+}
 
         // ==================================================
         // 2. BUILD BACKEND
