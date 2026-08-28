@@ -677,7 +677,13 @@ pipeline {
                         exit /b 1
                     )
 
-                    curl -s -o nul -w "HTTP Status: %%{http_code}\\n" "%APPZILLON_URL%"
+                    for /f "delims=" %%s in ('curl -s -o nul -w "%%{http_code}" "%APPZILLON_URL%"') do (
+                        echo HTTP Status: %%s
+                        if not "%%s"=="200" (
+                            echo ERROR: Appzillon URL is not healthy.
+                            exit /b 1
+                        )
+                    )
 
                     echo.
                     echo ##########################################
@@ -733,13 +739,17 @@ pipeline {
                         echo.
                         echo Testing Appzillon URL...
 
-                        curl -s -o nul -w "HTTP Status: %%{http_code}" "%APPZILLON_URL%"
+                        for /f "delims=" %%s in ('curl -s -o nul -w "%%{http_code}" "%APPZILLON_URL%"') do (
+                            echo HTTP Status: %%s
+                            if "%%s"=="200" (
+                                echo Appzillon is running.
+                                exit /b 0
+                            )
+                            echo Appzillon returned HTTP %%s.
+                        )
 
-                        echo.
-
-                        echo Appzillon is running.
-
-                        exit /b 0
+                        echo Application is not ready yet.
+                        goto RETRY_APPZILLON
                     )
 
                     echo Tomcat is not ready yet.
@@ -773,6 +783,8 @@ pipeline {
 
                         exit /b 1
                     )
+
+                    :RETRY_APPZILLON
 
                     echo Waiting 3 seconds...
 
