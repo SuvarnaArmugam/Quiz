@@ -70,6 +70,22 @@ pipeline {
         )
     }
 
+    environment {
+        GIT_URL = "${params.GIT_URL ?: 'https://github.com/SuvarnaArmugam/Quiz.git'}"
+        PROJECT_DIR = "${params.PROJECT_DIR ?: '.'}"
+        JAVA_HOME_PATH = "${params.JAVA_HOME_PATH ?: 'C:/Program Files/Java/jdk-17.0.2'}"
+        APP_JAR = "${params.APP_JAR ?: 'target/quizapp.jar'}"
+        BACKEND_PORT = "${params.BACKEND_PORT ?: '8080'}"
+        BACKEND_URL = "${params.BACKEND_URL ?: 'http://localhost:8080/user/quizzes'}"
+        APPZ_HOME = "${params.APPZ_HOME ?: 'D:/Freshers_Software/Softwarepath/apache-tomcat-9.0.53'}"
+        APPZ_ARTIFACTS = "${params.APPZ_ARTIFACTS ?: 'D:/jenkins-testing'}"
+        WAR_FILE = "${params.WAR_FILE ?: 'quizzapp.war'}"
+        TOMCAT_PORT = "${params.TOMCAT_PORT ?: '8086'}"
+        APP_CONTEXT = "${params.APP_CONTEXT ?: 'quizzapp'}"
+        APPZILLON_URL = "${params.APPZILLON_URL ?: 'http://localhost:8086/quizzapp/'}"
+        TEST_MODE = "${params.TEST_MODE ?: 'all'}"
+    }
+
     stages {
 
 
@@ -289,10 +305,10 @@ pipeline {
                     echo VERIFYING BACKEND JAR
                     echo ==========================================
 
-                    if not exist "%WORKSPACE%\\target\\quizapp.jar" (
+                    if not exist "%WORKSPACE%\\%APP_JAR%" (
                         echo ERROR: Backend JAR not found.
                         echo Expected:
-                        echo %WORKSPACE%\\target\\quizapp.jar
+                        echo %WORKSPACE%\\%APP_JAR%
                         exit /b 1
                     )
 
@@ -300,18 +316,18 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo CHECKING PORT 8080
+                    echo CHECKING PORT %BACKEND_PORT%
                     echo ==========================================
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr LISTENING ^| findstr ":8080"') do (
-                        echo Found process %%a on port 8080
+                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr LISTENING ^| findstr ":%BACKEND_PORT%"') do (
+                        echo Found process %%a on port %BACKEND_PORT%
                         echo Stopping process %%a
                         taskkill /F /PID %%a >nul 2>&1
                     )
 
                     echo.
                     echo ==========================================
-                    echo WAITING FOR PORT 8080
+                    echo WAITING FOR PORT %BACKEND_PORT%
                     echo ==========================================
 
                     ping -n 4 127.0.0.1 >nul
@@ -333,7 +349,7 @@ pipeline {
 
                     echo Starting Spring Boot application...
 
-                    powershell -NoProfile -Command "$env:JENKINS_NODE_COOKIE='dontKillMe'; Start-Process -FilePath '%JAVA_HOME%\\bin\\java.exe' -ArgumentList '-jar','%WORKSPACE%\\target\\quizapp.jar' -RedirectStandardOutput '%WORKSPACE%\\backend.log' -RedirectStandardError '%WORKSPACE%\\backend-err.log' -WindowStyle Hidden"
+                    powershell -NoProfile -Command "$env:JENKINS_NODE_COOKIE='dontKillMe'; Start-Process -FilePath '%JAVA_HOME%\\bin\\java.exe' -ArgumentList '-jar','%WORKSPACE%\\%APP_JAR%' -RedirectStandardOutput '%WORKSPACE%\\backend.log' -RedirectStandardError '%WORKSPACE%\\backend-err.log' -WindowStyle Hidden"
 
                     echo.
                     echo BACKEND START COMMAND EXECUTED
@@ -347,10 +363,10 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo PORT 8080 STATUS
+                    echo PORT %BACKEND_PORT% STATUS
                     echo ==========================================
 
-                    netstat -ano | findstr LISTENING | findstr ":8080"
+                    netstat -ano | findstr LISTENING | findstr ":%BACKEND_PORT%"
 
                     echo.
                     echo ==========================================
@@ -403,7 +419,7 @@ pipeline {
                     echo Checking backend port...
                     echo Attempts remaining: %RETRIES%
 
-                    netstat -ano | findstr LISTENING | findstr ":8080" >nul
+                    netstat -ano | findstr LISTENING | findstr ":%BACKEND_PORT%" >nul
 
                     if not errorlevel 1 (
 
@@ -412,7 +428,7 @@ pipeline {
                         echo BACKEND PORT IS RUNNING
                         echo ==========================================
 
-                        echo Port 8080 is listening.
+                        echo Port %BACKEND_PORT% is listening.
 
                         echo.
                         echo Testing backend URL...
@@ -445,7 +461,7 @@ pipeline {
                         echo PORT STATUS
                         echo ==========================================
 
-                        netstat -ano | findstr ":8080"
+                        netstat -ano | findstr ":%BACKEND_PORT%"
 
                         echo.
                         echo ==========================================
@@ -554,9 +570,9 @@ pipeline {
                     echo STOPPING TOMCAT
                     echo ==========================================
 
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr LISTENING ^| findstr ":8086"') do (
+                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr LISTENING ^| findstr ":%TOMCAT_PORT%"') do (
 
-                        echo Stopping process %%a on port 8086
+                        echo Stopping process %%a on port %TOMCAT_PORT%
 
                         taskkill /F /PID %%a >nul 2>&1
                     )
@@ -627,7 +643,7 @@ pipeline {
                     echo TOMCAT PORT STATUS
                     echo ==========================================
 
-                    netstat -ano | findstr LISTENING | findstr ":8086"
+                    netstat -ano | findstr LISTENING | findstr ":%TOMCAT_PORT%"
 
                     echo.
                     echo ==========================================
@@ -651,12 +667,12 @@ pipeline {
                     echo VERIFYING TOMCAT IS SERVING
                     echo ==========================================
 
-                    netstat -ano | findstr LISTENING | findstr ":8086" >nul
+                    netstat -ano | findstr LISTENING | findstr ":%TOMCAT_PORT%" >nul
 
                     if errorlevel 1 (
                         echo.
                         echo ##########################################
-                        echo # TOMCAT IS NOT RUNNING - PORT 8086 CLOSED
+                        echo # TOMCAT IS NOT RUNNING - PORT %TOMCAT_PORT% CLOSED
                         echo ##########################################
                         exit /b 1
                     )
@@ -665,7 +681,7 @@ pipeline {
 
                     echo.
                     echo ##########################################
-                    echo # TOMCAT IS UP AND RUNNING ON PORT 8086
+                    echo # TOMCAT IS UP AND RUNNING ON PORT %TOMCAT_PORT%
                     echo # %APPZILLON_URL%
                     echo ##########################################
                 '''
@@ -703,7 +719,7 @@ pipeline {
                     echo Checking Tomcat port...
                     echo Attempts remaining: %RETRIES%
 
-                    netstat -ano | findstr LISTENING | findstr ":8086" >nul
+                    netstat -ano | findstr LISTENING | findstr ":%TOMCAT_PORT%" >nul
 
                     if not errorlevel 1 (
 
@@ -712,7 +728,7 @@ pipeline {
                         echo TOMCAT IS RUNNING
                         echo ==========================================
 
-                        echo Port 8086 is listening.
+                        echo Port %TOMCAT_PORT% is listening.
 
                         echo.
                         echo Testing Appzillon URL...
@@ -742,7 +758,7 @@ pipeline {
                         echo PORT STATUS
                         echo ==========================================
 
-                        netstat -ano | findstr ":8086"
+                        netstat -ano | findstr ":%TOMCAT_PORT%"
 
                         echo.
                         echo ==========================================
