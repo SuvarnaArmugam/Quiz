@@ -2,6 +2,14 @@ pipeline {
 
     agent any
 
+    parameters {
+        choice(
+            name: 'TEST_MODE',
+            choices: ['all', 'java', 'node', 'none'],
+            description: 'Select which automated tests to run.'
+        )
+    }
+
     environment {
 
         // ============================================================
@@ -742,6 +750,13 @@ pipeline {
 
         stage('Java Playwright Tests') {
 
+            when {
+                anyOf {
+                    expression { params.TEST_MODE == 'all' }
+                    expression { params.TEST_MODE == 'java' }
+                }
+            }
+
             steps {
 
                 bat '''
@@ -772,6 +787,10 @@ pipeline {
 
             when {
                 allOf {
+                    anyOf {
+                        expression { params.TEST_MODE == 'all' }
+                        expression { params.TEST_MODE == 'node' }
+                    }
                     expression { fileExists('package.json') }
                     expression { fileExists('tests') }
                 }
