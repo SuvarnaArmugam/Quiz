@@ -16,5 +16,4 @@ test('complete quiz flow', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Ok' }).click();
   await page.getByRole('button', { name: 'Result' }).click();
-  await page.getByRole('button', { name: 'Back' }).click();
 });
