@@ -754,7 +754,7 @@ pipeline {
                     set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
                     set "PATH=%JAVA_HOME%\\bin;%PATH%"
 
-                    call mvn -Dtest=ExampleTest test
+                    call mvn test
                     if errorlevel 1 (
                         echo ERROR: Java Playwright test failed.
                         exit /b 1
@@ -769,6 +769,13 @@ pipeline {
         // ============================================================
 
         stage('Playwright Tests') {
+
+            when {
+                allOf {
+                    expression { fileExists('package.json') }
+                    expression { fileExists('tests') }
+                }
+            }
 
             steps {
 
