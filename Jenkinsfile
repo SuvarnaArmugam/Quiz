@@ -25,7 +25,7 @@ pipeline {
         )
         string(
             name: 'APP_JAR',
-            defaultValue: 'target/application.jar',
+            defaultValue: 'target\\application.jar',
             description: 'Backend JAR path relative to the project directory.'
         )
         string(
@@ -80,7 +80,7 @@ pipeline {
         GIT_URL = "${params.GIT_URL ?: 'https://github.com/SuvarnaArmugam/Quiz.git'}"
         PROJECT_DIR = "${params.PROJECT_DIR ?: '.'}"
         JAVA_HOME_PATH = "${params.JAVA_HOME_PATH ?: 'C:/Program Files/Java/jdk-17.0.2'}"
-        APP_JAR = "${params.APP_JAR ?: 'target/application.jar'}"
+        APP_JAR = "${params.APP_JAR ?: 'target\\application.jar'}"
         BACKEND_PORT = "${params.BACKEND_PORT ?: '8080'}"
         BACKEND_URL = "${params.BACKEND_URL ?: 'http://localhost:8080/user/quizzes'}"
         APPZ_HOME = "${params.APPZ_HOME ?: 'D:/Freshers_Software/Softwarepath/apache-tomcat-9.0.53'}"
@@ -161,6 +161,8 @@ pipeline {
 
                 bat '''
                     @echo off
+
+                    set "APP_JAR=%APP_JAR:/=\\%"
 
                     echo ==========================================
                     echo BUILDING %APP_NAME% BACKEND
@@ -306,6 +308,8 @@ pipeline {
 
                 bat '''
                     @echo off
+
+                    set "APP_JAR=%APP_JAR:/=\\%"
 
                     echo ==========================================
                     echo DEPLOYING %APP_NAME% BACKEND
