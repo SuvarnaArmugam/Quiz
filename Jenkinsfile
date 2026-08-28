@@ -238,39 +238,44 @@ pipeline {
                     echo SEARCHING FOR GENERATED JAR
                     echo ==========================================
 
-                    if not exist "target\\*.jar" (
+                    for %%P in ("%APP_JAR%") do (
+                        set "APP_JAR_DIR=%%~dpP"
+                        set "APP_JAR_FILE=%%~nxP"
+                    )
+
+                    if not exist "%APP_JAR_DIR%*.jar" (
                         echo.
                         echo ERROR: No JAR file was generated.
                         echo.
                         echo Target directory contents:
-                        dir target
+                        dir "%APP_JAR_DIR%"
                         exit /b 1
                     )
 
                     echo.
                     echo JAR FILES FOUND:
-                    dir /B "target\\*.jar"
+                    dir /B "%APP_JAR_DIR%*.jar"
 
                     echo.
                     echo ==========================================
                     echo CREATING STANDARD JAR NAME
                     echo ==========================================
 
-                    if exist "target\\quizapp.jar" (
-                        del /F /Q "target\\quizapp.jar"
+                    if exist "%APP_JAR%" (
+                        del /F /Q "%APP_JAR%"
                     )
 
-                    for /f "delims=" %%J in ('dir /B /O-D "target\\*.jar" ^| findstr /V /I "quizapp.jar"') do (
+                    for /f "delims=" %%J in ('dir /B /O-D "%APP_JAR_DIR%*.jar" ^| findstr /V /I /C:"%APP_JAR_FILE%"') do (
                         echo Generated JAR: %%J
-                        copy /Y "target\\%%J" "target\\quizapp.jar" >nul
+                        copy /Y "%APP_JAR_DIR%%%J" "%APP_JAR%" >nul
                         goto JAR_COPIED
                     )
 
                     :JAR_COPIED
 
-                    if not exist "target\\quizapp.jar" (
+                    if not exist "%APP_JAR%" (
                         echo.
-                        echo ERROR: Could not create target\\quizapp.jar
+                        echo ERROR: Could not create %APP_JAR%
                         exit /b 1
                     )
 
@@ -279,7 +284,7 @@ pipeline {
                     echo STANDARD JAR CREATED SUCCESSFULLY
                     echo ==========================================
 
-                    dir "target\\quizapp.jar"
+                    dir "%APP_JAR%"
                 '''
             }
         }
