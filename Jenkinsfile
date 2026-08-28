@@ -3,6 +3,66 @@ pipeline {
     agent any
 
     parameters {
+        string(
+            name: 'GIT_URL',
+            defaultValue: 'https://github.com/SuvarnaArmugam/Quiz.git',
+            description: 'Git repository URL configured for this pipeline.'
+        )
+        string(
+            name: 'PROJECT_DIR',
+            defaultValue: '.',
+            description: 'Project directory relative to the Jenkins workspace.'
+        )
+        string(
+            name: 'JAVA_HOME_PATH',
+            defaultValue: 'C:/Program Files/Java/jdk-17.0.2',
+            description: 'Java installation directory.'
+        )
+        string(
+            name: 'APP_JAR',
+            defaultValue: 'target/quizapp.jar',
+            description: 'Backend JAR path relative to the project directory.'
+        )
+        string(
+            name: 'BACKEND_PORT',
+            defaultValue: '8080',
+            description: 'Backend HTTP port.'
+        )
+        string(
+            name: 'BACKEND_URL',
+            defaultValue: 'http://localhost:8080/user/quizzes',
+            description: 'Backend health-check URL.'
+        )
+        string(
+            name: 'APPZ_HOME',
+            defaultValue: 'D:/Freshers_Software/Softwarepath/apache-tomcat-9.0.53',
+            description: 'Tomcat installation directory.'
+        )
+        string(
+            name: 'APPZ_ARTIFACTS',
+            defaultValue: 'D:/jenkins-testing',
+            description: 'Directory containing the deployable WAR.'
+        )
+        string(
+            name: 'WAR_FILE',
+            defaultValue: 'quizzapp.war',
+            description: 'WAR file name in the artifact directory.'
+        )
+        string(
+            name: 'TOMCAT_PORT',
+            defaultValue: '8086',
+            description: 'Tomcat HTTP port.'
+        )
+        string(
+            name: 'APP_CONTEXT',
+            defaultValue: 'quizzapp',
+            description: 'Tomcat application context.'
+        )
+        string(
+            name: 'APPZILLON_URL',
+            defaultValue: 'http://localhost:8086/quizzapp/',
+            description: 'Deployed application health-check URL.'
+        )
         choice(
             name: 'TEST_MODE',
             choices: ['all', 'java', 'node', 'none'],
@@ -16,33 +76,6 @@ pipeline {
         // JAVA
         // ============================================================
 
-        JAVA_HOME = 'C:/Program Files/Java/jdk-17.0.2'
-
-
-        // ============================================================
-        // BACKEND
-        // ============================================================
-
-        APP_JAR = 'target/quizapp.jar'
-
-        BACKEND_PORT = '8080'
-
-        BACKEND_URL = 'http://localhost:8080/user/quizzes'
-
-
-        // ============================================================
-        // TOMCAT / APPZILLON
-        // ============================================================
-
-        APPZ_HOME = 'D:/Freshers_Software/Softwarepath/apache-tomcat-9.0.53'
-
-        APPZ_ARTIFACTS = 'D:/jenkins-testing'
-
-        TOMCAT_PORT = '8086'
-
-        APP_CONTEXT = 'quizzapp'
-
-        APPZILLON_URL = 'http://localhost:8086/quizzapp/'
     }
 
 
@@ -125,7 +158,7 @@ pipeline {
                     echo SETTING JAVA HOME
                     echo ==========================================
 
-                    set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
+                    set "JAVA_HOME=%JAVA_HOME_PATH%"
                     set "PATH=%JAVA_HOME%\\bin;%PATH%"
 
                     echo JAVA_HOME:
@@ -297,7 +330,7 @@ pipeline {
                     echo STARTING QUIZAPP BACKEND VIA POWERSHELL
                     echo ==========================================
 
-                    set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
+                    set "JAVA_HOME=%JAVA_HOME_PATH%"
 
                     if exist "%WORKSPACE%\\backend.log" (
                         del /F /Q "%WORKSPACE%\\backend.log"
@@ -463,12 +496,12 @@ pipeline {
                     echo ==========================================
 
                     echo Expected WAR:
-                    echo %APPZ_ARTIFACTS%\\quizzapp.war
+                    echo %APPZ_ARTIFACTS%\\%WAR_FILE%
 
-                    if not exist "%APPZ_ARTIFACTS%\\quizzapp.war" (
+                    if not exist "%APPZ_ARTIFACTS%\\%WAR_FILE%" (
 
                         echo.
-                        echo ERROR: quizzapp.war not found.
+                        echo ERROR: %WAR_FILE% not found.
 
                         echo.
                         echo Checking artifact directory:
@@ -487,7 +520,7 @@ pipeline {
                     echo APPZILLON WAR FOUND
                     echo ==========================================
 
-                    dir "%APPZ_ARTIFACTS%\\quizzapp.war"
+                    dir "%APPZ_ARTIFACTS%\\%WAR_FILE%"
                 '''
             }
         }
@@ -562,11 +595,11 @@ pipeline {
                     echo COPYING NEW WAR
                     echo ==========================================
 
-                    copy /Y "%APPZ_ARTIFACTS%\\quizzapp.war" "%APPZ_HOME%\\webapps\\%APP_CONTEXT%.war"
+                    copy /Y "%APPZ_ARTIFACTS%\\%WAR_FILE%" "%APPZ_HOME%\\webapps\\%APP_CONTEXT%.war"
 
                     if errorlevel 1 (
 
-                        echo ERROR: Failed to copy quizzapp.war.
+                        echo ERROR: Failed to copy %WAR_FILE%.
 
                         exit /b 1
                     )
@@ -766,7 +799,7 @@ pipeline {
                     echo RUNNING JAVA PLAYWRIGHT TEST
                     echo ==========================================
 
-                    set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.2"
+                    set "JAVA_HOME=%JAVA_HOME_PATH%"
                     set "PATH=%JAVA_HOME%\\bin;%PATH%"
 
                     call mvn test
