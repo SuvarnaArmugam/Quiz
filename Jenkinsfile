@@ -4,6 +4,11 @@ pipeline {
 
     parameters {
         string(
+            name: 'APP_NAME',
+            defaultValue: 'Quiz Application',
+            description: 'Application name used in pipeline messages.'
+        )
+        string(
             name: 'GIT_URL',
             defaultValue: 'https://github.com/SuvarnaArmugam/Quiz.git',
             description: 'Git repository URL configured for this pipeline.'
@@ -20,7 +25,7 @@ pipeline {
         )
         string(
             name: 'APP_JAR',
-            defaultValue: 'target/quizapp.jar',
+            defaultValue: 'target/application.jar',
             description: 'Backend JAR path relative to the project directory.'
         )
         string(
@@ -71,10 +76,11 @@ pipeline {
     }
 
     environment {
+        APP_NAME = "${params.APP_NAME ?: 'Quiz Application'}"
         GIT_URL = "${params.GIT_URL ?: 'https://github.com/SuvarnaArmugam/Quiz.git'}"
         PROJECT_DIR = "${params.PROJECT_DIR ?: '.'}"
         JAVA_HOME_PATH = "${params.JAVA_HOME_PATH ?: 'C:/Program Files/Java/jdk-17.0.2'}"
-        APP_JAR = "${params.APP_JAR ?: 'target/quizapp.jar'}"
+        APP_JAR = "${params.APP_JAR ?: 'target/application.jar'}"
         BACKEND_PORT = "${params.BACKEND_PORT ?: '8080'}"
         BACKEND_URL = "${params.BACKEND_URL ?: 'http://localhost:8080/user/quizzes'}"
         APPZ_HOME = "${params.APPZ_HOME ?: 'D:/Freshers_Software/Softwarepath/apache-tomcat-9.0.53'}"
@@ -157,7 +163,7 @@ pipeline {
                     @echo off
 
                     echo ==========================================
-                    echo BUILDING QUIZAPP BACKEND
+                    echo BUILDING %APP_NAME% BACKEND
                     echo ==========================================
 
                     echo.
@@ -302,7 +308,7 @@ pipeline {
                     @echo off
 
                     echo ==========================================
-                    echo DEPLOYING QUIZAPP BACKEND
+                    echo DEPLOYING %APP_NAME% BACKEND
                     echo ==========================================
 
                     echo.
@@ -339,7 +345,7 @@ pipeline {
 
                     echo.
                     echo ==========================================
-                    echo STARTING QUIZAPP BACKEND VIA POWERSHELL
+                    echo STARTING %APP_NAME% BACKEND VIA POWERSHELL
                     echo ==========================================
 
                     set "JAVA_HOME=%JAVA_HOME_PATH%"
@@ -932,7 +938,7 @@ pipeline {
         success {
 
             echo '=========================================='
-            echo 'QUIZAPP DEPLOYMENT SUCCESSFUL'
+            echo "${env.APP_NAME} DEPLOYMENT SUCCESSFUL"
             echo '=========================================='
 
             echo 'Backend:'
@@ -948,7 +954,7 @@ pipeline {
         failure {
 
             echo '=========================================='
-            echo 'QUIZAPP DEPLOYMENT FAILED'
+            echo "${env.APP_NAME} DEPLOYMENT FAILED"
             echo '=========================================='
 
             echo 'Check the failed stage.'
